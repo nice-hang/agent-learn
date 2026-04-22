@@ -17,7 +17,7 @@ const tools: Tool[] = [
 ];
 
 const result = await runReActAgent({
-  task: "先回声一句问候，再说明已完成。",
+  task: "请先计算 12+30 和 7+9，再对两次计算结果做简短总结，最后给出最终答案说明总和与结论。",
   tools,
   maxSteps: 8,
   callLLM,

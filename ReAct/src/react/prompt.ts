@@ -1,25 +1,31 @@
 import type { Tool } from "./types.js";
 
-/** 用中文说明格式，拼接任务、工具表与草稿 */
+/** 构造最小 ReAct 提示词：只让模型输出一轮 Action 或 Final Answer。 */
 export function buildPrompt(task: string, tools: Tool[], scratchpad: string): string {
-  const list = tools.map((t) => `- ${t.name}：${t.description}`).join("\n");
-  const pad = scratchpad.trim() || "（尚无，请开始。）";
-  return `你是推理智能体，用工具完成任务。只输出一块，格式如下（不要用 markdown 代码块）：
+  const toolNames = tools.map((t) => t.name).join(", ");
+  const toolsText = tools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
+  const pad = scratchpad.trim() || "(empty)";
+  return `You are a ReAct agent. Use tools to solve the task.
 
-思考：……
-行动：工具名 或 结束
-行动输入：工具参数；若行动是「结束」，此处写最终答案
+Use exactly one of the following two output formats (no markdown code fences):
 
-规则：只能用下列工具名；任务完成时行动填「结束」，答案写在行动输入里。
+Format A (continue with a tool):
+Thought: your reasoning
+Action: one of [${toolNames}]
+Action Input: tool input
 
-可用工具：
-${list}
+Format B (finish):
+Thought: I now know the final answer
+Final Answer: final answer to the original task
 
-任务：
+Tools:
+${toolsText}
+
+Task:
 ${task}
 
-草稿（思考/行动/观察）：
+Scratchpad (previous Thought/Action/Action Input/Observation):
 ${pad}
 
-请只输出下一轮：思考、行动、行动输入。`;
+Now output only the next step.`;
 }
