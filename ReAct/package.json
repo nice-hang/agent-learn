@@ -8,7 +8,8 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "start": "tsx src/index.ts"
+    "start": "tsx src/index.ts",
+    "start:cot": "tsx src/index-cot.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

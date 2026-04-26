@@ -13,12 +13,24 @@ export type ParsedFinish = {
 
 export type ParsedBlock = ParsedAction | ParsedFinish;
 
-/** 解析 ReAct 输出：只接受 Action 分支或 Final Answer 分支（二选一）。 */
-export function parseReActBlock(raw: string): ParsedBlock | null {
+export type ReasoningLabel = "Thought" | "Reasoning";
+
+export type ParseStructuredOptions = {
+  reasoningLabel: ReasoningLabel;
+};
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** 解析 Thought/Reasoning + Action 或 Final Answer（二选一）。 */
+export function parseStructuredBlock(raw: string, options: ParseStructuredOptions): ParsedBlock | null {
   const text = raw.trim();
-  const thoughtMatch = /Thought\s*:\s*([\s\S]*?)(?=\n\s*(Action|Final Answer)\s*:|$)/i.exec(
-    text
-  );
+  const label = escapeRegex(options.reasoningLabel);
+  const thoughtMatch = new RegExp(
+    `${label}\\s*:\\s*([\\s\\S]*?)(?=\\n\\s*(Action|Final Answer)\\s*:|$)`,
+    "i"
+  ).exec(text);
   const thought = thoughtMatch?.[1]?.trim() ?? "";
 
   const actionMatch = /Action\s*:\s*([^\n]+)\n\s*Action Input\s*:\s*([\s\S]*)$/i.exec(text);
@@ -42,4 +54,9 @@ export function parseReActBlock(raw: string): ParsedBlock | null {
   }
 
   return null;
+}
+
+/** 解析 ReAct 输出：Thought + Action 或 Final Answer。 */
+export function parseReActBlock(raw: string): ParsedBlock | null {
+  return parseStructuredBlock(raw, { reasoningLabel: "Thought" });
 }
